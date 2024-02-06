@@ -1,34 +1,37 @@
 ---
-- name: Execute {{ va }} VA stages
+- name: Execute VA stages for {{ va }}
   block:
-    - debug:
+    - name: Show contents of input item
+      ansible.builtin.debug:
         var: item
 
-    - set_fact:
+    - name: Set current stage path
+      ansible.builtin.set_fact:
         stage_path: "{{ item['path'] }}"
 
     - name: Handle values generation
-      include_tasks: values.yaml
-      with_items: 
+      ansible.builtin.include_tasks: values.yaml
+      with_items:
         - "{{ item['values'] }}"
 
     - name: Build CRs
-      shell: kustomize build
+      ansible.builtin.command: kustomize build
       args:
         chdir: "{{ base_path }}/va_repo/{{ item['path'] }}"
       register: kustomize_built_crs
 
     - name: Write-out CRs
-      copy:
+      ansible.builtin.copy:
         content: "{{ kustomize_built_crs.stdout }}"
         dest: "{{ base_path }}/va_repo/{{ item['path'] }}/staged_crs.yaml"
+        mode: '0644'
 
     - name: Apply CRs
-      debug: 
+      ansible.builtin.debug:
         msg: "oc apply -f {{ base_path }}/va_repo/{{ item['path'] }}/staged_crs.yaml"
-      # shell: "oc apply -k {{ base_path }}/va_repo/{{ item['path'] }}"
+      # ansible.builtin.command: "oc apply -k {{ base_path }}/va_repo/{{ item['path'] }}"
 
     - name: Wait for stage to finish
-      debug:
+      ansible.builtin.debug:
         msg: "{{ item['validation'] }}"
-      # shell: "{{ item['validation'] }}"
+      # ansible.builtin.command: "{{ item['validation'] }}"

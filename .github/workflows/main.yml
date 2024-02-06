@@ -1,0 +1,19 @@
+name: linting
+on: push
+
+jobs:
+  ansible-linting:
+    name: va-automation Ansible linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Ansible
+        run: python -m pip install 'ansible'
+
+      - name: Install ansible-lint
+        run: python -m pip install 'ansible-lint'
+
+      - name: Lint Ansible va-automate playbook
+        run: ${HOME}/.local/bin/ansible-lint .

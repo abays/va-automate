@@ -1,18 +1,19 @@
 ---
-- hosts: localhost
+- name: Validated Architecture deployment tooling
+  hosts: localhost
 
   tasks:
-  - name: Include variables
-    include_vars: vars/default.yaml
+    - name: Include variables
+      ansible.builtin.include_vars: vars/default.yaml
 
-  - name: Clone the architecture repo
-    git:
-      repo: "{{ vas[va]['repo'] }}"
-      dest: "{{ base_path }}/va_repo"
-      force: true
-      version: "{{ vas[va]['branch'] }}"
+    - name: Clone the architecture repo
+      ansible.builtin.git:
+        repo: "{{ vas[va]['repo'] }}"
+        dest: "{{ base_path }}/va_repo"
+        force: true
+        version: "{{ vas[va]['branch'] }}"
 
-  - name: Process VA stages
-    include_tasks: stage.yaml
-    with_items: 
-      - "{{ vas[va]['stages'] }}"
+    - name: Process VA stages
+      ansible.builtin.include_tasks: stage.yaml
+      with_items:
+        - "{{ vas[va]['stages'] }}"
