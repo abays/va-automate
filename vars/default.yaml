@@ -1,0 +1,38 @@
+---
+base_path: /home/ocp
+vas:
+  hci:
+    repo: https://github.com/abays/architecture.git
+    branch: va1_edpm_kustomize_2
+    stages:
+    - path: examples/va/hci/control-plane/nncp
+      validation: "oc wait nncp --for jsonpath='{.status.conditions[0].reason}'=SuccessfullyConfigured --timeout=60" 
+      values:
+      - name: network-values
+        dest_file: values.yaml
+        src_file: network_values.yaml
+
+    - path: examples/va/hci/control-plane
+      validation: "oc wait osctlplane controlplane --for condition=Ready --timeout=600s"
+      values:
+      - name: network-values
+        dest_file: nncp/values.yaml
+        src_file: network_values.yaml
+      
+    - path: examples/va/hci/edpm-pre-ceph
+      validation: "oc wait osdpd edpm-deployment-pre-ceph --for condition=Ready --timeout=1200s"
+      values:
+      - name: edpm-values
+        dest_file: values.yaml
+        src_file: edpm_pre_ceph_values.yaml
+
+    - path: examples/va/hci
+      validation: "oc wait osdpd edpm-deployment-post-ceph --for condition=Ready --timeout=1200s"
+      values:
+      - name: service-values
+        dest_file: service-values.yaml
+        src_file: edpm_post_ceph_service_values.yaml
+      - name: edpm-values-post-ceph
+        dest_file: values.yaml
+        src_file: edpm_post_ceph_edpm_values.yaml
+      
