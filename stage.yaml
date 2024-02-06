@@ -1,0 +1,34 @@
+---
+- name: Execute {{ va }} VA stages
+  block:
+    - debug:
+        var: item
+
+    - set_fact:
+        stage_path: "{{ item['path'] }}"
+
+    - name: Handle values generation
+      include_tasks: values.yaml
+      with_items: 
+        - "{{ item['values'] }}"
+
+    - name: Build CRs
+      shell: kustomize build
+      args:
+        chdir: "{{ base_path }}/va_repo/{{ item['path'] }}"
+      register: kustomize_built_crs
+
+    - name: Write-out CRs
+      copy:
+        content: "{{ kustomize_built_crs.stdout }}"
+        dest: "{{ base_path }}/va_repo/{{ item['path'] }}/staged_crs.yaml"
+
+    - name: Apply CRs
+      debug: 
+        msg: "oc apply -f {{ base_path }}/va_repo/{{ item['path'] }}/staged_crs.yaml"
+      # shell: "oc apply -k {{ base_path }}/va_repo/{{ item['path'] }}"
+
+    - name: Wait for stage to finish
+      debug:
+        msg: "{{ item['validation'] }}"
+      # shell: "{{ item['validation'] }}"

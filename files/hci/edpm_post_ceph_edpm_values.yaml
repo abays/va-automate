@@ -1,0 +1,13 @@
+nodeset:
+  services:
+  - ceph-client
+  - ovn
+  - neutron-metadata
+  - libvirt
+  - nova-custom-ceph
+ceph:
+  conf: CHANGEME_CEPH_CONF
+  keyring: CHANGEME_CEPH_KEYRING
+nova:
+  ceph:
+    conf: CHANGEME_NOVA_CEPH_CONF
