@@ -1,18 +1,28 @@
 ---
 - hosts: localhost
-
+  vars:
+    base_path: "{{ lookup('ansible.builtin.env', 'HOME') }}"
   tasks:
-  - name: Include variables
-    include_vars: vars/default.yaml
-
   - name: Clone the architecture repo
-    git:
-      repo: "{{ vas[va]['repo'] }}"
+    ansible.builtin.git:
       dest: "{{ base_path }}/va_repo"
       force: true
-      version: "{{ vas[va]['branch'] }}"
+      repo: https://github.com/openstack-k8s-operators/architecture.git
+      version: main
+
+  - name: Ensure vars directory exsits
+    ansible.builtin.file:
+      path: vars
+      state: directory
+
+  - name: Copy architecture automation structure to vars/default.yaml
+    ansible.builtin.copy:
+      src: "{{ base_path }}/va_repo/automation/vars/default.yaml"
+      dest: vars/default.yaml
+
+  - name: Include vars/default.yaml variables
+    ansible.builtin.include_vars: vars/default.yaml
 
   - name: Process VA stages
-    include_tasks: stage.yaml
-    with_items: 
-      - "{{ vas[va]['stages'] }}"
+    ansible.builtin.include_tasks: stage.yaml
+    loop: "{{ vas[va]['stages'] }}"
