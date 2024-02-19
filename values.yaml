@@ -1,19 +1,21 @@
 ---
 - name: Use source values file, if present
-  when: item['src_file'] | default('', true) != ''
+  when:
+    - item['src_file'] | default('', true) != ''
+    - item['src_file'] != 'none'
   block:
   - name: Slurp source file
     ansible.builtin.slurp:
-      src: "files/{{ va }}/{{ item['src_file'] }}"
+      src: "files/{{ va }}/{{ item['name'] }}/{{ item['src_file'] }}"
     register: values_data
 
   - name: Dump source file into dest file
     vars:
       values_config_map_name: "{{ item['name'] }}"
       values_config_map_data: "{{ values_data.content | b64decode | indent(2, false) }}"
-    template:
+    ansible.builtin.template:
       src: values_config_map.yaml.j2
-      dest: "{{ base_path }}/va_repo/{{ stage_path }}/{{ item['dest_file'] }}"
+      dest: "{{ base_path }}/va_repo/{{ stage_path }}/{{ item['src_file'] }}"
       mode: '0664'
 
 # Otherwise we're just going to use the values file(s) already present
